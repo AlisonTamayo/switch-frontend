@@ -79,7 +79,7 @@ export default function Compensacion() {
         }
 
         try {
-            await compensacionApi.post(`/api/v1/compensacion/ciclos/${cicloActivo.id}/cierre?proximoCicloEnMinutos=${minInt}`);
+            await compensacionApi.post(`/compensacion/ciclos/${cicloActivo.id}/cierre?proximoCicloEnMinutos=${minInt}`);
             alert(`✅ Ciclo #${cicloActivo.numeroCiclo} CERRADO. Nuevo ciclo programado a ${minInt} min.`);
             loadData();
         } catch (error) {
