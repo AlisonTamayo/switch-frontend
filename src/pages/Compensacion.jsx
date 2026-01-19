@@ -88,7 +88,9 @@ export default function Compensacion() {
     };
 
     const descargarPDF = (cicloId) => {
-        window.open(`http://localhost:8084/api/v1/compensacion/reporte/pdf/${cicloId}`, '_blank');
+        // Usamos la ruta relativa que pasa por Nginx -> Kong -> MS
+        // Rutas: /api (Nginx) -> /compensacion (Kong Strip) -> /compensacion (Controller)
+        window.open(`/api/compensacion/compensacion/reporte/pdf/${cicloId}`, '_blank');
     };
 
     return (
