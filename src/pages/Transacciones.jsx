@@ -63,7 +63,9 @@ export default function Transacciones() {
 
     const formatDate = (dateString) => {
         if (!dateString) return "-";
-        return new Date(dateString).toLocaleString('es-EC', {
+        // Backend envía LocalDateTime sin zona (pero es UTC). Agregamos 'Z' para que JS sepa que es UTC.
+        const utcDate = dateString.endsWith('Z') ? dateString : dateString + 'Z';
+        return new Date(utcDate).toLocaleString('es-EC', {
             year: 'numeric',
             month: '2-digit',
             day: '2-digit',
