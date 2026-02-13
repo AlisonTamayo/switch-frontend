@@ -9,13 +9,19 @@ const AUTH_URL = 'https://auth-banca-digiconecu-dev-lhd4go.auth.us-east-2.amazon
 const AUTH_BASIC = 'Basic N29qMTJqdHU4ZDNrZWlsdjFlMWdqa2M4ZTQ6MTZvOWJkcHBpMnFrdTY5dnVrN3FkY2ltNGZxcmtta2dnZGVyM2lxNDdwOWNzMjl0cXFvcQ==';
 const SCOPE = 'https://switch-api.com/transfers.write';
 
-let tokenCache = null;
+// Claves para LocalStorage
+const STORAGE_KEY_TOKEN = 'switch_access_token';
+const STORAGE_KEY_EXPIRY = 'switch_token_expiry';
 
 // Función para obtener token dinámicamente
 async function getAccessToken() {
-    // Si tenemos token válido en memoria, úsalo (mejora performance)
-    if (tokenCache && tokenCache.expiresAt > Date.now()) {
-        return tokenCache.token;
+    // 1. Intentar recuperar de LocalStorage
+    const storedToken = localStorage.getItem(STORAGE_KEY_TOKEN);
+    const storedExpiry = localStorage.getItem(STORAGE_KEY_EXPIRY);
+
+    // Verificar si existe y NO ha expirado (damos 1 minuto de margen de seguridad)
+    if (storedToken && storedExpiry && parseInt(storedExpiry) > Date.now()) {
+        return storedToken;
     }
 
     try {
@@ -32,15 +38,19 @@ async function getAccessToken() {
 
         const { access_token, expires_in } = response.data;
 
-        // Guardar en cache (restamos 60s por seguridad de reloj)
-        tokenCache = {
-            token: access_token,
-            expiresAt: Date.now() + (expires_in * 1000) - 60000
-        };
+        // Calculamos expiración: Ahora + segundos de vida (menos 60s de margen)
+        const expiryTime = Date.now() + (expires_in * 1000) - 60000;
+
+        // 2. Guardar en LocalStorage
+        localStorage.setItem(STORAGE_KEY_TOKEN, access_token);
+        localStorage.setItem(STORAGE_KEY_EXPIRY, expiryTime.toString());
 
         return access_token;
     } catch (error) {
         console.error('Error autenticando con Cognito:', error);
+        // Si falla, limpiar storage por si acaso hay basura
+        localStorage.removeItem(STORAGE_KEY_TOKEN);
+        localStorage.removeItem(STORAGE_KEY_EXPIRY);
         throw error;
     }
 }
